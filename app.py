@@ -109,28 +109,45 @@ PROJECT_ID = os.environ.get("FIREBASE_PROJECT_ID", "").strip()   # ← SET IN RA
 
 def init_firebase():
     global db, FIREBASE_READY
-    creds_json = os.environ.get("FIREBASE_CREDS")
+
+    # Prevent double-initialization (e.g. during hot reloads)
+    if firebase_admin._apps:
+        db = firestore.client()
+        FIREBASE_READY = True
+        return
+
+    # ── Primary: Railway / production environment variable ──
+    creds_json = os.environ.get("FIREBASE_CREDS", "").strip()
     if creds_json:
         try:
-            cred = credentials.Certificate(json.loads(creds_json))
-            firebase_admin.initialize_app(cred, {"projectId": PROJECT_ID})
+            creds_info = json.loads(creds_json)
+            cred = credentials.Certificate(creds_info)
+            firebase_admin.initialize_app(cred, {"projectId": PROJECT_ID} if PROJECT_ID else {})
             db = firestore.client()
             FIREBASE_READY = True
-            print("✅ Firebase connected via FIREBASE_CREDS")
+            print("✅ Firebase initialized via FIREBASE_CREDS (Railway env var)")
             return
+        except json.JSONDecodeError as e:
+            print(f"❌ FIREBASE_CREDS is not valid JSON: {e}")
         except Exception as e:
-            print(f"⚠️  FIREBASE_CREDS failed: {e}")
+            print(f"❌ Firebase init failed from FIREBASE_CREDS: {e}")
+
+    # ── Fallback: local dev only (serviceAccountKey.json) ──
     sa = os.path.join(os.path.dirname(__file__), "serviceAccountKey.json")
     if os.path.exists(sa):
         try:
-            firebase_admin.initialize_app(credentials.Certificate(sa), {"projectId": PROJECT_ID})
+            firebase_admin.initialize_app(
+                credentials.Certificate(sa),
+                {"projectId": PROJECT_ID} if PROJECT_ID else {}
+            )
             db = firestore.client()
             FIREBASE_READY = True
-            print("✅ Firebase connected via serviceAccountKey.json")
+            print("✅ Firebase initialized via local serviceAccountKey.json (dev fallback)")
             return
         except Exception as e:
-            print(f"⚠️  serviceAccountKey.json failed: {e}")
-    print("❌ Firebase not connected — set FIREBASE_CREDS env var")
+            print(f"❌ serviceAccountKey.json fallback failed: {e}")
+
+    print("❌ Firebase NOT connected — set FIREBASE_CREDS in Railway environment variables")
 
 init_firebase()
 
