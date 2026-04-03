@@ -1,23 +1,7 @@
-// ════════════════════════════════════════════════════════════
-//  config.js — Project Submission System
-//
-//  ┌─────────────────────────────────────────────────────┐
-//  │  WHERE TO PUT YOUR FIREBASE DETAILS                 │
-//  │                                                     │
-//  │  1. Go to https://console.firebase.google.com       │
-//  │  2. Open your project → Project Settings ⚙️         │
-//  │  3. Scroll to "Your apps" → Web app → Config        │
-//  │  4. Copy the values into FIREBASE_CONFIG below      │
-//  │                                                     │
-//  │  Also in Railway env vars, set:                     │
-//  │    FIREBASE_CREDS       = serviceAccountKey.json    │
-//  │    FIREBASE_PROJECT_ID  = your-project-id           │
-//  │    VAPID_PRIVATE_KEY    = (already set in app.py)   │
-//  └─────────────────────────────────────────────────────┘
-// ════════════════════════════════════════════════════════════
 
-// ← PASTE YOUR FIREBASE WEB APP CONFIG HERE ↓
-const firebaseConfig = {
+
+
+const FIREBASE_CONFIG = {
   apiKey: "AIzaSyD_SiSgoWsIpFdds834xYt_tOZhh6yfv00",
   authDomain: "testing-b3bf9.firebaseapp.com",
   projectId: "testing-b3bf9",
