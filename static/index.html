@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Submission Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="js/config.js"></script>
+</head>
+<body>
+
+<!-- ══════════════ LOADING ══════════════ -->
+<div id="loading-overlay">
+  <div style="text-align:center">
+    <div style="display:flex;justify-content:center;margin-bottom:16px">
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+    </div>
+    <div style="color:rgba(255,255,255,0.3);font-size:13px;letter-spacing:0.1em;text-transform:uppercase">Connecting…</div>
+  </div>
+</div>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="login-screen" style="display:none">
+
+  <!-- First-run setup -->
+  <div class="login-card" id="setup-panel" style="display:none">
+    <div class="login-brand">Project Portal</div>
+    <div class="login-sub" style="color:var(--accent)">First-Time Setup</div>
+    <p style="font-size:13px;color:var(--muted);margin:8px 0 20px">Create the admin account to get started.</p>
+    <div class="field"><label>Admin ID</label><input type="text" id="setup-admin-id" value="ADMIN001"></div>
+    <div class="field">
+      <label>Admin Password</label>
+      <div class="pass-reveal">
+        <input type="password" id="setup-pass" placeholder="Min 10 characters">
+        <button class="pass-toggle" type="button" onclick="togglePass('setup-pass',this)">👁</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Confirm Password</label>
+      <div class="pass-reveal">
+        <input type="password" id="setup-confirm" placeholder="Repeat password">
+        <button class="pass-toggle" type="button" onclick="togglePass('setup-confirm',this)">👁</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="setup-btn" onclick="doSetup()">Create Admin Account</button>
+    <div class="error-msg" id="setup-error"></div>
+  </div>
+
+  <!-- Normal login -->
+  <div class="login-card" id="login-panel">
+    <div class="login-brand">Project Portal</div>
+    <div class="login-sub">Project Submission System</div>
+    <div class="firebase-badge" id="fb-status-badge">
+      <div class="dot"></div>
+      <span id="fb-status-text">Firebase Connected</span>
+    </div>
+    <div class="field"><label>User ID</label><input type="text" id="login-id" placeholder="Enter your User ID" autocomplete="off"></div>
+    <div class="field">
+      <label>Password</label>
+      <div class="pass-reveal">
+        <input type="password" id="login-pass" placeholder="Enter your password">
+        <button class="pass-toggle" type="button" onclick="togglePass('login-pass',this)">👁</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="login-btn" onclick="doLogin()">Sign In →</button>
+    <div class="error-msg" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="app">
+  <nav class="topbar">
+    <div class="topbar-brand">Project <span>Portal</span></div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <div class="user-avatar" id="nav-avatar">U</div>
+        <div>
+          <div style="font-size:13px;font-weight:500" id="nav-name">User</div>
+          <div style="font-size:11px;color:#888" id="nav-id-display"></div>
+        </div>
+      </div>
+      <span class="role-badge" id="nav-role-badge">Role</span>
+      <button class="logout-btn" onclick="doLogout()">Log out</button>
+    </div>
+  </nav>
+
+  <!-- ══ ADMIN PAGE ══ -->
+  <div id="page-admin" class="page">
+    <div class="page-header">
+      <div class="page-title">Admin Dashboard</div>
+      <div class="page-desc">Manage student and professor accounts</div>
+    </div>
+    <div class="grid-3">
+      <div class="stat-card accent"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Total Users</div></div>
+      <div class="stat-card blue"><div class="stat-num" id="stat-profs">—</div><div class="stat-label">Professors</div></div>
+      <div class="stat-card green"><div class="stat-num" id="stat-students">—</div><div class="stat-label">Students</div></div>
+    </div>
+    <div class="grid-2" style="margin-top:20px">
+      <div class="card">
+        <div class="card-title">Create New Account</div>
+        <div class="field"><label>Full Name</label><input type="text" id="new-name" placeholder="e.g. Dr. Priya Sharma"></div>
+        <div class="field">
+          <label>Role</label>
+          <select id="new-role">
+            <option value="student">Student</option>
+            <option value="professor">Professor</option>
+          </select>
+        </div>
+        <div class="field"><label>Department / Year</label><input type="text" id="new-dept" placeholder="e.g. CSE – 3rd Year"></div>
+        <button class="btn btn-primary" id="create-btn" onclick="createAccount()">Generate Credentials</button>
+        <div class="cred-box" id="cred-display">
+          <div class="cred-row"><span class="cred-key">User ID</span><span class="cred-val" id="cred-id">—</span></div>
+          <div class="cred-row"><span class="cred-key">Password</span><span class="cred-val" id="cred-pass">—</span></div>
+          <div class="cred-row"><span class="cred-key">Role</span><span class="cred-val" id="cred-role">—</span></div>
+          <div class="cred-row"><span class="cred-key">Name</span><span class="cred-val" id="cred-name">—</span></div>
+          <div style="margin-top:12px;font-size:11px;color:var(--accent)">⚠ Save this password — shown ONCE only.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">All Users</div>
+        <div id="user-list"><div class="spinner">Loading users…</div></div>
+      </div>
+    </div>
+    <div class="card" style="max-width:500px;margin-top:20px">
+      <div class="card-title">Change Admin Password</div>
+      <div class="field"><label>Current Password</label><input type="password" id="cur-pass"></div>
+      <div class="field"><label>New Password</label><input type="password" id="new-pass" placeholder="Min 10 characters"></div>
+      <div class="field"><label>Confirm New Password</label><input type="password" id="confirm-pass"></div>
+      <button class="btn btn-primary" id="change-pass-btn" onclick="changePassword()">Update Password</button>
+      <div class="error-msg" id="pass-error"></div>
+    </div>
+  </div>
+
+  <!-- ══ PROFESSOR PAGE ══ -->
+  <div id="page-professor" class="page">
+    <div class="page-header">
+      <div class="page-title">Professor Dashboard</div>
+      <div class="page-desc">Manage classrooms and review student project submissions</div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchProfTab('classrooms', this)">My Classrooms</div>
+      <div class="tab" onclick="switchProfTab('create', this)">+ Create Classroom</div>
+    </div>
+
+    <!-- Classrooms tab -->
+    <div id="ptab-classrooms">
+      <!-- Classroom list -->
+      <div id="my-classrooms-list"></div>
+      <!-- Classroom detail (hidden by default) -->
+      <div id="classroom-detail" style="display:none">
+        <button class="btn btn-outline btn-sm" onclick="backToClassrooms()" style="margin-bottom:20px">← Back to Classrooms</button>
+        <div id="classroom-detail-content" class="card"></div>
+        <div class="card">
+          <div class="card-title">Submissions</div>
+          <div id="submissions-list"><div class="spinner">Loading…</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create classroom tab -->
+    <div id="ptab-create" style="display:none">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Classroom Details</div>
+          <div class="field"><label>Classroom Name</label><input type="text" id="cls-name" placeholder="e.g. Web Development – Batch A"></div>
+          <div class="field"><label>Description (optional)</label><textarea id="cls-desc" placeholder="Brief description of this classroom…"></textarea></div>
+          <button class="btn btn-primary" id="create-cls-btn" onclick="createClassroom()">Create Classroom</button>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            Select Students
+            <span id="selected-count" style="font-size:13px;color:var(--accent);margin-left:8px;font-family:'DM Sans',sans-serif;font-weight:400"></span>
+          </div>
+          <div class="field" style="margin-bottom:12px">
+            <input type="text" id="student-search" placeholder="Search students…" oninput="filterStudents()">
+          </div>
+          <div class="student-picker" id="student-picker">
+            <div class="spinner">Loading students…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STUDENT PAGE ══ -->
+  <div id="page-student" class="page">
+    <div class="page-header">
+      <div class="page-title">Student Portal</div>
+      <div class="page-desc">View your classrooms and submit project Drive links</div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchStudentTab('classrooms', this)">My Classrooms</div>
+      <div class="tab" onclick="switchStudentTab('submit', this)">Submit Project</div>
+      <div class="tab" onclick="switchStudentTab('track', this)">My Submissions</div>
+    </div>
+
+    <!-- Classrooms tab -->
+    <div id="stab-classrooms">
+      <div id="student-classrooms-list"></div>
+    </div>
+
+    <!-- Submit tab -->
+    <div id="stab-submit" style="display:none">
+      <div class="card" style="max-width:640px">
+        <div class="card-title">Submit a Project</div>
+        <div class="field">
+          <label>Classroom</label>
+          <select id="sub-classroom"><option value="">Loading…</option></select>
+        </div>
+        <div class="field"><label>Project Title</label><input type="text" id="sub-title" placeholder="e.g. E-Commerce Website"></div>
+        <div class="field"><label>Description (optional)</label><textarea id="sub-desc" placeholder="Brief description of your project…"></textarea></div>
+        <div class="field">
+          <label>Google Drive Link</label>
+          <input type="url" id="sub-drive-link" placeholder="https://drive.google.com/...">
+          <div style="margin-top:6px;font-size:12px;color:var(--muted)">
+            Paste a shareable Google Drive / Docs link. Make sure sharing is set to "Anyone with the link can view".
+          </div>
+        </div>
+        <button class="btn btn-primary" id="submit-project-btn" onclick="submitProject()">Submit Project →</button>
+      </div>
+    </div>
+
+    <!-- Track tab -->
+    <div id="stab-track" style="display:none">
+      <div class="card">
+        <div class="card-title">My Submissions</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Project</th><th>Classroom</th><th>Professor</th><th>Drive Link</th><th>Submitted</th><th>Status</th><th>Grade & Feedback</th></tr>
+            </thead>
+            <tbody id="my-submissions-table">
+              <tr><td colspan="7"><div class="spinner">Loading…</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ GRADE MODAL ══════════════ -->
+<div class="modal-overlay" id="grade-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeGradeModal()">✕</button>
+    <div style="font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px">Grade Submission</div>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:24px">Assign a grade and optional feedback</div>
+    <div class="field">
+      <label>Grade</label>
+      <input type="text" id="grade-input" placeholder="e.g. A+, 95/100, Pass, Excellent…">
+    </div>
+    <div class="field">
+      <label>Feedback (optional)</label>
+      <textarea id="feedback-input" placeholder="Comments for the student…"></textarea>
+    </div>
+    <div class="error-msg" id="grade-error"></div>
+    <div style="display:flex;gap:12px;margin-top:16px">
+      <button class="btn btn-green" id="grade-submit-btn" onclick="submitGrade()" style="width:auto;padding:12px 28px">Save Grade</button>
+      <button class="btn btn-outline" onclick="closeGradeModal()" style="width:auto;padding:12px 24px">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ TOAST ══════════════ -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ══════════════ SCRIPTS ══════════════ -->
+<script src="js/utils.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/professor.js"></script>
+<script src="js/student.js"></script>
+
+</body>
+</html>
