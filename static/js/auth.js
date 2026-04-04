@@ -7,12 +7,19 @@ window._currentUserId = null;
 
 // ─── Boot ─────────────────────────────────────────────────
 async function boot() {
+  // Register SW immediately — before login — so a subscription
+  // can be created and stored as early as possible.
+  // This means when the professor creates a classroom and sends
+  // the "Added to Classroom" push, the student already has a
+  // saved subscription in Firestore.
+  await registerServiceWorkerEarly();
+
   try {
     await db.collection('users').limit(1).get();
     document.getElementById('fb-status-text').textContent = 'Firebase Connected';
     devLog('Firebase OK');
   } catch (e) {
-    document.getElementById('fb-status-badge').style.background = '#fde8e3';
+    document.getElementById('fb-status-badge').style.background = 'var(--red-subtle)';
     document.getElementById('fb-status-text').textContent = 'Firebase Error';
     devLog('Firebase FAILED:', e.message);
   }
@@ -23,7 +30,7 @@ async function boot() {
 function _hideOverlay() {
   const ov = document.getElementById('loading-overlay');
   ov.classList.add('hidden');
-  setTimeout(() => { ov.style.display = 'none'; }, 500);
+  setTimeout(() => { ov.style.display = 'none'; }, 400);
   document.getElementById('login-screen').style.display = 'flex';
 }
 
@@ -31,8 +38,8 @@ async function checkFirstRunSetup() {
   try {
     const h = await api.health();
     if (h.needsSetup) {
-      document.getElementById('setup-panel').style.display  = 'block';
-      document.getElementById('login-panel').style.display  = 'none';
+      document.getElementById('setup-panel').style.display = 'block';
+      document.getElementById('login-panel').style.display = 'none';
     }
   } catch (_) {}
 }
@@ -74,8 +81,11 @@ async function doLogin() {
     window._currentUserId = data.user.id;
     document.getElementById('login-screen').style.display = 'none';
     mountApp();
-    // Register push notifications after login
-    requestPushPermission();
+
+    // After login the user ID is known — request push permission
+    // and immediately save the subscription to the backend.
+    // This ensures the server can push to this specific user.
+    requestAndSavePushSubscription();
   } catch (e) {
     showError(err, 'Invalid credentials. Please try again.');
     devLog('Login error:', e.message);
@@ -92,25 +102,60 @@ function doLogout() {
   document.getElementById('login-pass').value           = '';
 }
 
-// ─── Push Notifications ───────────────────────────────────
-async function requestPushPermission() {
+// ══════════════════════════════════════════════════════════
+//  PUSH NOTIFICATIONS
+// ══════════════════════════════════════════════════════════
+
+// Step 1 — Register SW immediately on page load (no user ID needed).
+//   This creates the subscription object in the browser.
+//   We store it in window._swReg so Step 2 can reuse it.
+async function registerServiceWorkerEarly() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
   try {
     const reg = await navigator.serviceWorker.register('/sw.js');
-    const perm = await Notification.requestPermission();
-    if (perm !== 'granted') return;
-    const existing = await reg.pushManager.getSubscription();
-    const sub = existing || await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-    });
-    await api.savePushSubscription(sub.toJSON());
-    devLog('Push subscription saved');
+    // Wait until the SW is fully active
+    await navigator.serviceWorker.ready;
+    window._swReg = reg;
+    devLog('SW registered early, scope:', reg.scope);
   } catch (e) {
-    devLog('Push registration failed:', e.message);
+    devLog('SW early registration failed:', e.message);
   }
 }
 
+// Step 2 — After login, request permission and save subscription to backend.
+//   Called with the user ID already set in window._currentUserId.
+async function requestAndSavePushSubscription() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  if (!window._currentUserId) return;
+
+  try {
+    // Use cached registration from Step 1, or re-register if needed
+    const reg = window._swReg || await navigator.serviceWorker.ready;
+
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') {
+      devLog('Push permission denied');
+      return;
+    }
+
+    // Reuse existing subscription or create a new one
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+
+    // Always re-save on every login so the server has a fresh record
+    await api.savePushSubscription(sub.toJSON());
+    devLog('Push subscription saved for', window._currentUserId);
+  } catch (e) {
+    devLog('Push subscription failed:', e.message);
+  }
+}
+
+// ─── VAPID key conversion util ────────────────────────────
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -120,6 +165,7 @@ function urlBase64ToUint8Array(base64String) {
   return output;
 }
 
+// Enter key on password field triggers login
 document.getElementById('login-pass').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();
 });
