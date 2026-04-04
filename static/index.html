@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Project Submission Portal</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -14,313 +14,429 @@
 
 <!-- ══════════════ LOADING ══════════════ -->
 <div id="loading-overlay">
-  <div style="text-align:center">
-    <div style="display:flex;justify-content:center;margin-bottom:14px">
-      <div class="loader-dot"></div>
-      <div class="loader-dot"></div>
-      <div class="loader-dot"></div>
-    </div>
-    <div style="color:var(--muted2);font-size:11px;letter-spacing:0.14em;text-transform:uppercase">Initializing…</div>
+  <div class="loader-wrap">
+    <div class="loader-ring"></div>
+    <div class="loader-text">INITIALIZING</div>
   </div>
 </div>
 
 <!-- ══════════════ LOGIN ══════════════ -->
 <div id="login-screen" style="display:none">
-
-  <!-- First-run setup -->
-  <div class="login-card" id="setup-panel" style="display:none">
-    <div class="login-brand">Project Portal</div>
-    <div class="login-sub" style="color:var(--red)">First-Time Setup</div>
-    <p style="font-size:12px;color:var(--muted2);margin:0 0 20px">Create the admin account to get started.</p>
-    <div class="field"><label>Admin ID</label><input type="text" id="setup-admin-id" value="ADMIN001"></div>
-    <div class="field">
-      <label>Admin Password</label>
-      <div class="pass-reveal">
-        <input type="password" id="setup-pass" placeholder="Min 10 characters">
-        <button class="pass-toggle" type="button" onclick="togglePass('setup-pass',this)">👁</button>
+  <div class="login-left">
+    <div class="login-left-content">
+      <div class="brand-mark">
+        <span class="brand-icon">◈</span>
+        <span>ACADEX</span>
+      </div>
+      <div class="login-hero">
+        <div class="login-hero-title">Project<br>Submission<br>Portal</div>
+        <div class="login-hero-sub">Streamlined academic project management for professors and students.</div>
+      </div>
+      <div class="login-features">
+        <div class="feat-item"><span class="feat-dot"></span>Real-time classroom management</div>
+        <div class="feat-item"><span class="feat-dot"></span>Instant grade & feedback delivery</div>
+        <div class="feat-item"><span class="feat-dot"></span>Push deadline notifications</div>
       </div>
     </div>
-    <div class="field">
-      <label>Confirm Password</label>
-      <div class="pass-reveal">
-        <input type="password" id="setup-confirm" placeholder="Repeat password">
-        <button class="pass-toggle" type="button" onclick="togglePass('setup-confirm',this)">👁</button>
-      </div>
-    </div>
-    <button class="btn btn-primary" id="setup-btn" onclick="doSetup()">Create Admin Account</button>
-    <div class="error-msg" id="setup-error"></div>
   </div>
 
-  <!-- Normal login -->
-  <div class="login-card" id="login-panel">
-    <div class="login-brand">Project Portal</div>
-    <div class="login-sub">Submission System</div>
-    <div class="firebase-badge" id="fb-status-badge">
-      <div class="dot"></div>
-      <span id="fb-status-text">Firebase Connected</span>
-    </div>
-    <div class="field"><label>User ID</label><input type="text" id="login-id" placeholder="Enter your User ID" autocomplete="off"></div>
-    <div class="field">
-      <label>Password</label>
-      <div class="pass-reveal">
-        <input type="password" id="login-pass" placeholder="Enter your password">
-        <button class="pass-toggle" type="button" onclick="togglePass('login-pass',this)">👁</button>
+  <div class="login-right">
+    <!-- First-run setup -->
+    <div class="auth-box" id="setup-panel" style="display:none">
+      <div class="auth-eyebrow">First Run</div>
+      <div class="auth-title">Create Admin Account</div>
+      <p class="auth-desc">Set up the administrator credentials to begin.</p>
+      <div class="field"><label>Admin ID</label><input type="text" id="setup-admin-id" value="ADMIN001"></div>
+      <div class="field">
+        <label>Password <span class="label-hint">min 10 chars</span></label>
+        <div class="pass-reveal">
+          <input type="password" id="setup-pass" placeholder="Enter password">
+          <button class="pass-toggle" type="button" onclick="togglePass('setup-pass',this)">👁</button>
+        </div>
       </div>
+      <div class="field">
+        <label>Confirm Password</label>
+        <div class="pass-reveal">
+          <input type="password" id="setup-confirm" placeholder="Repeat password">
+          <button class="pass-toggle" type="button" onclick="togglePass('setup-confirm',this)">👁</button>
+        </div>
+      </div>
+      <button class="auth-btn" id="setup-btn" onclick="doSetup()">Create Admin Account →</button>
+      <div class="error-msg" id="setup-error"></div>
     </div>
-    <button class="btn btn-primary" id="login-btn" onclick="doLogin()">Sign In →</button>
-    <div class="error-msg" id="login-error"></div>
+
+    <!-- Normal login -->
+    <div class="auth-box" id="login-panel">
+      <div class="auth-eyebrow">Welcome back</div>
+      <div class="auth-title">Sign In</div>
+      <div class="fb-pill" id="fb-status-badge">
+        <div class="fb-dot"></div>
+        <span id="fb-status-text">Connecting…</span>
+      </div>
+      <div class="field"><label>User ID</label><input type="text" id="login-id" placeholder="e.g. STU3821 or ADMIN001" autocomplete="off"></div>
+      <div class="field">
+        <label>Password</label>
+        <div class="pass-reveal">
+          <input type="password" id="login-pass" placeholder="Enter your password">
+          <button class="pass-toggle" type="button" onclick="togglePass('login-pass',this)">👁</button>
+        </div>
+      </div>
+      <button class="auth-btn" id="login-btn" onclick="doLogin()">Sign In →</button>
+      <div class="error-msg" id="login-error"></div>
+    </div>
   </div>
 </div>
 
 <!-- ══════════════ APP ══════════════ -->
-<div id="app">
-  <nav class="topbar">
-    <div class="topbar-brand">Project <span>Portal</span></div>
-    <div class="topbar-right">
-      <div class="user-chip">
-        <div class="user-avatar" id="nav-avatar">U</div>
-        <div class="nav-meta">
-          <span class="name" id="nav-name">User</span>
-          <span class="uid" id="nav-id-display"></span>
-        </div>
-      </div>
-      <span class="role-badge" id="nav-role-badge">Role</span>
-      <button class="logout-btn" onclick="doLogout()">Log out</button>
-    </div>
-  </nav>
+<div id="app" style="display:none">
 
-  <!-- ══ ADMIN PAGE ══ -->
-  <div id="page-admin" class="page">
-    <div class="page-header">
-      <div class="page-title">Admin Dashboard</div>
-      <div class="page-desc">Manage student and professor accounts</div>
-    </div>
-    <div class="grid-3" style="margin-bottom:20px">
-      <div class="stat-card accent"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Total Users</div></div>
-      <div class="stat-card blue"><div class="stat-num" id="stat-profs">—</div><div class="stat-label">Professors</div></div>
-      <div class="stat-card green"><div class="stat-num" id="stat-students">—</div><div class="stat-label">Students</div></div>
-    </div>
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">Create New Account</div>
-        <div class="field"><label>Full Name</label><input type="text" id="new-name" placeholder="e.g. Dr. Priya Sharma"></div>
-        <div class="field">
-          <label>Role</label>
-          <select id="new-role">
-            <option value="student">Student</option>
-            <option value="professor">Professor</option>
-          </select>
-        </div>
-        <div class="field"><label>Department / Year</label><input type="text" id="new-dept" placeholder="e.g. CSE – 3rd Year"></div>
-        <button class="btn btn-primary" id="create-btn" onclick="createAccount()">Generate Credentials</button>
-        <div class="cred-box" id="cred-display">
-          <div class="cred-row"><span class="cred-key">User ID</span><span class="cred-val" id="cred-id">—</span></div>
-          <div class="cred-row"><span class="cred-key">Password</span><span class="cred-val" id="cred-pass">—</span></div>
-          <div class="cred-row"><span class="cred-key">Role</span><span class="cred-val" id="cred-role">—</span></div>
-          <div class="cred-row"><span class="cred-key">Name</span><span class="cred-val" id="cred-name">—</span></div>
-          <div style="margin-top:10px;font-size:11px;color:var(--red)">⚠ Save this password — shown ONCE only.</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">All Users</div>
-        <div id="user-list"><div class="spinner">Loading users…</div></div>
-      </div>
-    </div>
-    <div class="card" style="max-width:480px;margin-top:4px">
-      <div class="card-title">Change Admin Password</div>
-      <div class="field"><label>Current Password</label><input type="password" id="cur-pass"></div>
-      <div class="field"><label>New Password (min 10 chars)</label><input type="password" id="new-pass"></div>
-      <div class="field"><label>Confirm New Password</label><input type="password" id="confirm-pass"></div>
-      <button class="btn btn-primary" id="change-pass-btn" onclick="changePassword()">Update Password</button>
-      <div class="error-msg" id="pass-error"></div>
-    </div>
-  </div>
-
-  <!-- ══ PROFESSOR PAGE ══ -->
-  <div id="page-professor" class="page">
-    <div class="page-header">
-      <div class="page-title">Professor Dashboard</div>
-      <div class="page-desc">Manage classrooms and grade project submissions</div>
-    </div>
-    <div class="tabs">
-      <div class="tab active" onclick="switchProfTab('classrooms', this)">My Classrooms</div>
-      <div class="tab" onclick="switchProfTab('create', this)">+ New Classroom</div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">◈</span>
+      <span class="brand-name">ACADEX</span>
     </div>
 
-    <!-- Classrooms tab -->
-    <div id="ptab-classrooms">
-      <div id="my-classrooms-list"></div>
-      <!-- Classroom detail -->
-      <div id="classroom-detail" style="display:none">
-        <button class="btn btn-ghost btn-sm" onclick="backToClassrooms()" style="margin-bottom:20px">← Back</button>
-        <div id="classroom-detail-content" class="card"></div>
-        <div class="card">
-          <div class="card-title">Assignments</div>
-          <div id="assignments-list"><div class="spinner">Loading…</div></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Submissions</div>
-          <div id="submissions-list"><div class="spinner">Loading…</div></div>
-        </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="nav-avatar">U</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="nav-name">User</div>
+        <div class="sidebar-user-id" id="nav-id-display">—</div>
       </div>
+      <span class="role-pill" id="nav-role-badge">—</span>
     </div>
 
-    <!-- Create classroom tab -->
-    <div id="ptab-create" style="display:none">
-      <div class="grid-2">
-        <div>
-          <div class="card">
-            <div class="card-title">Classroom Details</div>
-            <div class="field"><label>Classroom Name</label><input type="text" id="cls-name" placeholder="e.g. Web Development – Batch A"></div>
-            <div class="field"><label>Description (optional)</label><textarea id="cls-desc" placeholder="Brief description…"></textarea></div>
+    <!-- Admin nav -->
+    <nav class="sidebar-nav" id="nav-admin" style="display:none">
+      <div class="nav-section-label">ADMIN</div>
+      <a class="nav-link active" onclick="showAdminSection('users')">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Users
+      </a>
+      <a class="nav-link" onclick="showAdminSection('create')">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Create Account
+      </a>
+      <a class="nav-link" onclick="showAdminSection('password')">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Security
+      </a>
+    </nav>
+
+    <!-- Professor nav -->
+    <nav class="sidebar-nav" id="nav-professor" style="display:none">
+      <div class="nav-section-label">PROFESSOR</div>
+      <a class="nav-link active" onclick="switchProfTab('classrooms', this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Classrooms
+      </a>
+      <a class="nav-link" onclick="switchProfTab('create', this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Classroom
+      </a>
+    </nav>
+
+    <!-- Student nav -->
+    <nav class="sidebar-nav" id="nav-student" style="display:none">
+      <div class="nav-section-label">STUDENT</div>
+      <a class="nav-link active" onclick="switchStudentTab('classrooms', this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        My Classrooms
+      </a>
+      <a class="nav-link" onclick="switchStudentTab('submit', this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Submit Project
+      </a>
+      <a class="nav-link" onclick="switchStudentTab('track', this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Submissions
+      </a>
+      <a class="nav-link" onclick="switchStudentTab('password', this)">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Security
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="doLogout()">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- ══ ADMIN PAGE ══ -->
+    <div id="page-admin" class="page">
+
+      <!-- Users section -->
+      <div class="admin-section active" id="asec-users">
+        <div class="page-top">
+          <div>
+            <div class="page-eyebrow">Admin</div>
+            <h1 class="page-h1">User Management</h1>
           </div>
-          <div class="card">
-            <div class="card-title">Assignment &amp; Deadline</div>
-            <div class="field"><label>Assignment Title</label><input type="text" id="cls-assignment-title" placeholder="e.g. Final Project Submission"></div>
-            <div class="field"><label>Assignment Description (optional)</label><textarea id="cls-assignment-desc" placeholder="Instructions, requirements…" style="min-height:60px"></textarea></div>
-            <div class="form-row">
-              <div class="field">
-                <label>Deadline Date</label>
-                <input type="date" id="cls-deadline-date">
-              </div>
-              <div class="field">
-                <label>Deadline Time</label>
-                <input type="time" id="cls-deadline-time" value="23:59">
-              </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-tile">
+            <div class="stat-tile-val" id="stat-total">—</div>
+            <div class="stat-tile-label">Total Users</div>
+          </div>
+          <div class="stat-tile accent-blue">
+            <div class="stat-tile-val" id="stat-profs">—</div>
+            <div class="stat-tile-label">Professors</div>
+          </div>
+          <div class="stat-tile accent-teal">
+            <div class="stat-tile-val" id="stat-students">—</div>
+            <div class="stat-tile-label">Students</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">All Accounts</div>
+          <div id="user-list"><div class="spinner">Loading users…</div></div>
+        </div>
+      </div>
+
+      <!-- Create section -->
+      <div class="admin-section" id="asec-create">
+        <div class="page-top">
+          <div>
+            <div class="page-eyebrow">Admin</div>
+            <h1 class="page-h1">Create Account</h1>
+          </div>
+        </div>
+        <div class="split-layout">
+          <div class="panel">
+            <div class="panel-head">Account Details</div>
+            <div class="field"><label>Full Name</label><input type="text" id="new-name" placeholder="e.g. Dr. Priya Sharma"></div>
+            <div class="field">
+              <label>Role</label>
+              <select id="new-role">
+                <option value="student">Student</option>
+                <option value="professor">Professor</option>
+              </select>
             </div>
-            <div style="font-size:11px;color:var(--muted2);margin-top:-10px;margin-bottom:14px">
-              Students will receive push alerts 24 hrs and 1 hr before deadline.
+            <div class="field"><label>Department / Year</label><input type="text" id="new-dept" placeholder="e.g. CSE – 3rd Year"></div>
+            <button class="primary-btn" id="create-btn" onclick="createAccount()">Generate Credentials</button>
+          </div>
+          <div class="panel cred-reveal" id="cred-display" style="display:none">
+            <div class="panel-head">Generated Credentials</div>
+            <div class="cred-warning">⚠ Save this password — shown ONCE only.</div>
+            <div class="cred-grid">
+              <div class="cred-item"><div class="cred-key">User ID</div><div class="cred-val" id="cred-id">—</div></div>
+              <div class="cred-item"><div class="cred-key">Password</div><div class="cred-val" id="cred-pass">—</div></div>
+              <div class="cred-item"><div class="cred-key">Role</div><div class="cred-val" id="cred-role">—</div></div>
+              <div class="cred-item"><div class="cred-key">Name</div><div class="cred-val" id="cred-name">—</div></div>
             </div>
-            <button class="btn btn-primary" id="create-cls-btn" onclick="createClassroom()">Create Classroom</button>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">
-            Select Students
-            <span id="selected-count" style="font-size:12px;color:var(--red);margin-left:6px;font-family:'DM Sans',sans-serif;font-weight:400"></span>
-          </div>
-          <div class="field" style="margin-bottom:10px">
-            <input type="text" id="student-search" placeholder="Search students…" oninput="filterStudents()">
-          </div>
-          <div class="student-picker" id="student-picker">
-            <div class="spinner">Loading students…</div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- ══ STUDENT PAGE ══ -->
-  <div id="page-student" class="page">
-    <div class="page-header">
-      <div class="page-title">Student Portal</div>
-      <div class="page-desc">View classrooms, submit projects, track progress</div>
-    </div>
-    <div class="tabs">
-      <div class="tab active" onclick="switchStudentTab('classrooms', this)">My Classrooms</div>
-      <div class="tab" onclick="switchStudentTab('submit', this)">Submit Project</div>
-      <div class="tab" onclick="switchStudentTab('track', this)">My Submissions</div>
-      <div class="tab" onclick="switchStudentTab('password', this)">Change Password</div>
-    </div>
-
-    <!-- Classrooms tab -->
-    <div id="stab-classrooms">
-      <div id="student-classrooms-list"></div>
-    </div>
-
-    <!-- Submit tab -->
-    <div id="stab-submit" style="display:none">
-      <div class="card" style="max-width:620px">
-        <div class="card-title">Submit a Project</div>
-        <div class="field">
-          <label>Classroom</label>
-          <select id="sub-classroom" onchange="onClassroomSelect()"><option value="">Loading…</option></select>
+      <!-- Password section -->
+      <div class="admin-section" id="asec-password">
+        <div class="page-top">
+          <div>
+            <div class="page-eyebrow">Admin</div>
+            <h1 class="page-h1">Security Settings</h1>
+          </div>
         </div>
-        <!-- Assignment info banner -->
-        <div id="assignment-banner" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-left:2px solid var(--red);padding:12px 14px;margin-bottom:16px;border-radius:var(--radius)">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:4px">Assignment</div>
-          <div style="font-size:14px;font-weight:600;color:var(--text)" id="banner-title">—</div>
-          <div style="font-size:12px;color:var(--muted2);margin-top:3px" id="banner-desc"></div>
-          <div style="margin-top:8px" id="banner-deadline"></div>
-        </div>
-        <div class="field"><label>Project Title</label><input type="text" id="sub-title" placeholder="e.g. E-Commerce Website"></div>
-        <div class="field"><label>Description (optional)</label><textarea id="sub-desc" placeholder="Brief description…"></textarea></div>
-        <div class="field">
-          <label>Google Drive Link</label>
-          <input type="url" id="sub-drive-link" placeholder="https://drive.google.com/…">
-          <div style="margin-top:5px;font-size:11px;color:var(--muted2)">Ensure sharing is set to "Anyone with the link can view".</div>
-        </div>
-        <button class="btn btn-primary" id="submit-project-btn" onclick="submitProject()">Submit Project →</button>
-      </div>
-    </div>
-
-    <!-- Track tab -->
-    <div id="stab-track" style="display:none">
-      <div class="card">
-        <div class="card-title">My Submissions</div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Project</th><th>Classroom</th><th>Professor</th><th>Drive</th><th>Submitted</th><th>Status</th><th>Grade &amp; Feedback</th></tr>
-            </thead>
-            <tbody id="my-submissions-table">
-              <tr><td colspan="7"><div class="spinner">Loading…</div></td></tr>
-            </tbody>
-          </table>
+        <div class="panel" style="max-width:480px">
+          <div class="panel-head">Change Admin Password</div>
+          <div class="field"><label>Current Password</label><input type="password" id="cur-pass"></div>
+          <div class="field"><label>New Password <span class="label-hint">min 10 chars</span></label><input type="password" id="new-pass"></div>
+          <div class="field"><label>Confirm New Password</label><input type="password" id="confirm-pass"></div>
+          <button class="primary-btn" id="change-pass-btn" onclick="changePassword()">Update Password</button>
+          <div class="error-msg" id="pass-error"></div>
         </div>
       </div>
     </div>
 
-    <!-- Password change tab -->
-    <div id="stab-password" style="display:none">
-      <div class="card" style="max-width:420px">
-        <div class="card-title">Change Password</div>
-        <div class="field">
-          <label>Current Password</label>
-          <div class="pass-reveal">
-            <input type="password" id="stu-cur-pass">
-            <button class="pass-toggle" type="button" onclick="togglePass('stu-cur-pass',this)">👁</button>
+    <!-- ══ PROFESSOR PAGE ══ -->
+    <div id="page-professor" class="page">
+      <div id="ptab-classrooms">
+        <!-- List view -->
+        <div id="prof-list-view">
+          <div class="page-top">
+            <div>
+              <div class="page-eyebrow">Professor</div>
+              <h1 class="page-h1">My Classrooms</h1>
+            </div>
+          </div>
+          <div id="my-classrooms-list" class="card-grid"></div>
+        </div>
+        <!-- Detail view -->
+        <div id="classroom-detail" style="display:none">
+          <div class="page-top">
+            <button class="back-btn" onclick="backToClassrooms()">← Back to Classrooms</button>
+          </div>
+          <div id="classroom-detail-content"></div>
+          <div class="panel" style="margin-top:20px">
+            <div class="panel-head">Assignment</div>
+            <div id="assignments-list"><div class="spinner">Loading…</div></div>
+          </div>
+          <div class="panel" style="margin-top:20px">
+            <div class="panel-head">Submissions</div>
+            <div id="submissions-list"><div class="spinner">Loading…</div></div>
           </div>
         </div>
-        <div class="field">
-          <label>New Password (min 10 chars)</label>
-          <div class="pass-reveal">
-            <input type="password" id="stu-new-pass" placeholder="Min 10 characters">
-            <button class="pass-toggle" type="button" onclick="togglePass('stu-new-pass',this)">👁</button>
+      </div>
+
+      <div id="ptab-create" style="display:none">
+        <div class="page-top">
+          <div>
+            <div class="page-eyebrow">Professor</div>
+            <h1 class="page-h1">New Classroom</h1>
           </div>
         </div>
-        <div class="field">
-          <label>Confirm New Password</label>
-          <div class="pass-reveal">
-            <input type="password" id="stu-confirm-pass">
-            <button class="pass-toggle" type="button" onclick="togglePass('stu-confirm-pass',this)">👁</button>
+        <div class="three-col-layout">
+          <div>
+            <div class="panel">
+              <div class="panel-head">Classroom Info</div>
+              <div class="field"><label>Classroom Name</label><input type="text" id="cls-name" placeholder="e.g. Web Dev – Batch A"></div>
+              <div class="field"><label>Description <span class="label-hint">optional</span></label><textarea id="cls-desc" placeholder="Brief description…"></textarea></div>
+            </div>
+            <div class="panel" style="margin-top:16px">
+              <div class="panel-head">Assignment & Deadline</div>
+              <div class="field"><label>Assignment Title</label><input type="text" id="cls-assignment-title" placeholder="e.g. Final Project Submission"></div>
+              <div class="field"><label>Instructions <span class="label-hint">optional</span></label><textarea id="cls-assignment-desc" placeholder="Requirements, links…" style="min-height:60px"></textarea></div>
+              <div class="form-row">
+                <div class="field"><label>Deadline Date</label><input type="date" id="cls-deadline-date"></div>
+                <div class="field"><label>Time</label><input type="time" id="cls-deadline-time" value="23:59"></div>
+              </div>
+              <div class="hint-text">Students get push alerts 24 hrs and 1 hr before deadline.</div>
+              <button class="primary-btn" id="create-cls-btn" onclick="createClassroom()">Create Classroom</button>
+            </div>
+          </div>
+          <div class="panel" style="grid-column: span 2 / span 2">
+            <div class="panel-head">
+              Enroll Students
+              <span id="selected-count" class="sel-count"></span>
+            </div>
+            <div class="field" style="margin-bottom:12px">
+              <input type="text" id="student-search" placeholder="Search by name, ID, or department…" oninput="filterStudents()">
+            </div>
+            <div class="student-picker" id="student-picker"><div class="spinner">Loading…</div></div>
           </div>
         </div>
-        <button class="btn btn-primary" id="stu-change-pass-btn" onclick="studentChangePassword()">Update Password</button>
-        <div class="error-msg" id="stu-pass-error"></div>
       </div>
     </div>
-  </div>
+
+    <!-- ══ STUDENT PAGE ══ -->
+    <div id="page-student" class="page">
+
+      <div id="stab-classrooms">
+        <div class="page-top">
+          <div>
+            <div class="page-eyebrow">Student</div>
+            <h1 class="page-h1">My Classrooms</h1>
+          </div>
+        </div>
+        <div id="student-classrooms-list" class="card-grid"></div>
+      </div>
+
+      <div id="stab-submit" style="display:none">
+        <div class="page-top">
+          <div>
+            <div class="page-eyebrow">Student</div>
+            <h1 class="page-h1">Submit Project</h1>
+          </div>
+        </div>
+        <div class="split-layout">
+          <div class="panel">
+            <div class="panel-head">Project Details</div>
+            <div class="field">
+              <label>Classroom</label>
+              <select id="sub-classroom" onchange="onClassroomSelect()"><option value="">Loading…</option></select>
+            </div>
+            <div id="assignment-banner" style="display:none" class="assignment-info-banner">
+              <div class="aib-label">Active Assignment</div>
+              <div class="aib-title" id="banner-title">—</div>
+              <div class="aib-desc" id="banner-desc"></div>
+              <div id="banner-deadline" style="margin-top:8px"></div>
+            </div>
+            <div class="field"><label>Project Title</label><input type="text" id="sub-title" placeholder="e.g. E-Commerce Website"></div>
+            <div class="field"><label>Description <span class="label-hint">optional</span></label><textarea id="sub-desc" placeholder="Brief description…"></textarea></div>
+            <div class="field">
+              <label>Google Drive Link</label>
+              <input type="url" id="sub-drive-link" placeholder="https://drive.google.com/…">
+              <div class="hint-text" style="margin-top:5px">Set sharing to "Anyone with the link can view".</div>
+            </div>
+            <button class="primary-btn" id="submit-project-btn" onclick="submitProject()">Submit Project →</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="stab-track" style="display:none">
+        <div class="page-top">
+          <div>
+            <div class="page-eyebrow">Student</div>
+            <h1 class="page-h1">My Submissions</h1>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Project</th><th>Classroom</th><th>Professor</th><th>Drive</th><th>Submitted</th><th>Status</th><th>Grade & Feedback</th></tr></thead>
+              <tbody id="my-submissions-table"><tr><td colspan="7"><div class="spinner">Loading…</div></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="stab-password" style="display:none">
+        <div class="page-top">
+          <div>
+            <div class="page-eyebrow">Student</div>
+            <h1 class="page-h1">Security Settings</h1>
+          </div>
+        </div>
+        <div class="panel" style="max-width:460px">
+          <div class="panel-head">Change Password</div>
+          <div class="field">
+            <label>Current Password</label>
+            <div class="pass-reveal">
+              <input type="password" id="stu-cur-pass">
+              <button class="pass-toggle" type="button" onclick="togglePass('stu-cur-pass',this)">👁</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>New Password <span class="label-hint">min 10 chars</span></label>
+            <div class="pass-reveal">
+              <input type="password" id="stu-new-pass" placeholder="Min 10 characters">
+              <button class="pass-toggle" type="button" onclick="togglePass('stu-new-pass',this)">👁</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Confirm New Password</label>
+            <div class="pass-reveal">
+              <input type="password" id="stu-confirm-pass">
+              <button class="pass-toggle" type="button" onclick="togglePass('stu-confirm-pass',this)">👁</button>
+            </div>
+          </div>
+          <button class="primary-btn" id="stu-change-pass-btn" onclick="studentChangePassword()">Update Password</button>
+          <div class="error-msg" id="stu-pass-error"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
 </div>
 
 <!-- ══════════════ GRADE MODAL ══════════════ -->
 <div class="modal-overlay" id="grade-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeGradeModal()">✕</button>
+    <div class="modal-eyebrow">Action Required</div>
     <div class="modal-title">Grade Submission</div>
-    <div class="modal-sub">Assign a grade and optional feedback</div>
-    <div class="field">
-      <label>Grade</label>
-      <input type="text" id="grade-input" placeholder="e.g. A+, 95/100, Pass, Excellent…">
-    </div>
-    <div class="field">
-      <label>Feedback (optional)</label>
-      <textarea id="feedback-input" placeholder="Comments for the student…"></textarea>
-    </div>
+    <div class="modal-sub">Assign a grade and optional feedback for this student.</div>
+    <div class="field"><label>Grade</label><input type="text" id="grade-input" placeholder="e.g. A+, 95/100, Pass, Excellent…"></div>
+    <div class="field"><label>Feedback <span class="label-hint">optional</span></label><textarea id="feedback-input" placeholder="Comments for the student…"></textarea></div>
     <div class="error-msg" id="grade-error"></div>
-    <div style="display:flex;gap:10px;margin-top:14px">
-      <button class="btn btn-green" id="grade-submit-btn" onclick="submitGrade()" style="width:auto;padding:10px 24px">Save Grade</button>
-      <button class="btn btn-outline" onclick="closeGradeModal()" style="width:auto;padding:10px 20px">Cancel</button>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="primary-btn" id="grade-submit-btn" onclick="submitGrade()" style="flex:1">Save Grade</button>
+      <button class="secondary-btn" onclick="closeGradeModal()">Cancel</button>
     </div>
   </div>
 </div>
@@ -336,6 +452,15 @@
 <script src="js/admin.js"></script>
 <script src="js/professor.js"></script>
 <script src="js/student.js"></script>
+<script>
+// Admin section switcher (new UI pattern)
+function showAdminSection(name) {
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('asec-' + name).classList.add('active');
+  document.querySelectorAll('#nav-admin .nav-link').forEach(l => l.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+</script>
 
 </body>
 </html>
