@@ -15,19 +15,27 @@ function mountApp() {
 
   const badge = document.getElementById('nav-role-badge');
   badge.textContent = capitalize(user.role);
-  badge.className   = 'role-badge ' + user.role;
+  badge.className   = 'role-pill ' + user.role;
+
+  // Hide all nav sections
+  document.getElementById('nav-admin').style.display     = 'none';
+  document.getElementById('nav-professor').style.display = 'none';
+  document.getElementById('nav-student').style.display   = 'none';
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
 
   if (user.role === 'admin') {
+    document.getElementById('nav-admin').style.display = 'block';
     document.getElementById('page-admin').classList.add('active');
     loadAdminPage();
 
   } else if (user.role === 'professor') {
+    document.getElementById('nav-professor').style.display = 'block';
     document.getElementById('page-professor').classList.add('active');
     loadProfessorPage();
 
   } else if (user.role === 'student') {
+    document.getElementById('nav-student').style.display = 'block';
     document.getElementById('page-student').classList.add('active');
     loadStudentPage();
 
@@ -64,7 +72,6 @@ async function submitGrade() {
     await api.gradeSubmission(_gradingSubId, grade, feedback);
     toast('Graded successfully!', 'success');
     closeGradeModal();
-    // Refresh current classroom view if open
     if (window._currentClassroomId) loadClassroomDetail(window._currentClassroomId);
   } catch (e) {
     showError(err, e.message);
