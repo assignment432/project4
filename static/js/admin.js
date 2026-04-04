@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════
-//  admin.js — Admin dashboard (students & professors only)
+//  admin.js — Admin dashboard
 // ════════════════════════════════════════════════════════════
 
 async function loadAdminPage() {
@@ -20,25 +20,23 @@ async function loadAdminPage() {
       return;
     }
 
-    const roleColor = { professor: 'var(--blue)', student: 'var(--green)' };
-    const roleBg    = { professor: 'var(--blue-light)', student: 'var(--green-light)' };
-    const roleLabel = { professor: 'Professor', student: 'Student' };
+    const roleColor = { professor: 'var(--blue)', student: 'var(--teal)' };
 
     list.innerHTML = users
       .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
       .map(u => `
         <div class="user-item">
           <div class="user-item-left">
-            <div class="user-item-avatar" style="background:${roleColor[u.role] || 'var(--muted)'}">
+            <div class="user-item-avatar" style="background:${roleColor[u.role] || 'var(--muted2)'}">
               ${(u.name || '?').charAt(0)}
             </div>
             <div>
-              <div style="font-weight:500;font-size:14px">${u.name}</div>
-              <div style="color:var(--muted);font-size:12px">${u.id} · ${u.dept || ''}</div>
+              <div style="font-weight:600;font-size:13px;color:var(--text)">${u.name}</div>
+              <div style="color:var(--muted2);font-size:11px;font-family:'Syne',sans-serif;letter-spacing:0.04em">${u.id} · ${u.dept || ''}</div>
             </div>
           </div>
-          <span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;background:${roleBg[u.role]};color:${roleColor[u.role]}">
-            ${roleLabel[u.role] || u.role}
+          <span class="status ${u.role === 'professor' ? 'submitted' : 'graded'}" style="font-size:10px;letter-spacing:0.08em">
+            ${capitalize(u.role)}
           </span>
         </div>
       `).join('');
@@ -58,10 +56,10 @@ async function createAccount() {
   try {
     const data = await api.createUser(name, role, dept);
     const { id: newId, password: pass } = data.credentials;
-    document.getElementById('cred-id').textContent        = newId;
-    document.getElementById('cred-pass').textContent      = pass;
-    document.getElementById('cred-role').textContent      = capitalize(role);
-    document.getElementById('cred-name').textContent      = name;
+    document.getElementById('cred-id').textContent   = newId;
+    document.getElementById('cred-pass').textContent = pass;
+    document.getElementById('cred-role').textContent = capitalize(role);
+    document.getElementById('cred-name').textContent = name;
     document.getElementById('cred-display').style.display = 'block';
     document.getElementById('new-name').value = '';
     document.getElementById('new-dept').value = '';
