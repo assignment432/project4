@@ -6,8 +6,8 @@ window._currentClassroomId = null;
 let _allStudents = [];
 
 function switchProfTab(tab, el) {
-  document.querySelectorAll('#page-professor .tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
+  document.querySelectorAll('#nav-professor .nav-link').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
   document.getElementById('ptab-classrooms').style.display = tab === 'classrooms' ? 'block' : 'none';
   document.getElementById('ptab-create').style.display     = tab === 'create'     ? 'block' : 'none';
   if (tab === 'create') loadStudentPicker();
@@ -24,8 +24,8 @@ function deadlineState(isoDeadline) {
   const dl   = new Date(isoDeadline).getTime();
   const diff = dl - now;
   if (diff < 0)              return 'passed';
-  if (diff < 3600 * 1000)   return 'urgent';   // < 1 hr
-  if (diff < 86400 * 1000)  return 'soon';     // < 24 hr
+  if (diff < 3600 * 1000)   return 'urgent';
+  if (diff < 86400 * 1000)  return 'soon';
   return 'ok';
 }
 
@@ -45,7 +45,7 @@ async function loadMyClassrooms() {
     const data = await api.myClassroomsProf();
     const cls  = data.classrooms || [];
     if (cls.length === 0) {
-      container.innerHTML = '<div class="empty"><div class="empty-icon">🏫</div><p>No classrooms yet. Create one!</p></div>';
+      container.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🏫</div><p>No classrooms yet. Create one from the sidebar!</p></div>';
       return;
     }
     container.innerHTML = cls.map(c => {
@@ -54,9 +54,9 @@ async function loadMyClassrooms() {
       return `
         <div class="classroom-card" onclick="loadClassroomDetail('${c.id}')">
           <div class="classroom-card-title">${c.name}</div>
-          ${c.description ? `<div style="color:var(--muted2);font-size:12px;margin:3px 0 6px">${c.description}</div>` : ''}
-          ${asgn.title ? `<div style="font-size:12px;color:var(--text2);margin-bottom:6px">📋 ${asgn.title}</div>` : ''}
-          ${dlBadge ? `<div style="margin-bottom:6px">${dlBadge}</div>` : ''}
+          ${c.description ? `<div style="color:var(--muted2);font-size:12px;margin:4px 0 8px;line-height:1.5">${c.description}</div>` : ''}
+          ${asgn.title ? `<div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600">📋 ${asgn.title}</div>` : ''}
+          ${dlBadge ? `<div style="margin-bottom:8px">${dlBadge}</div>` : ''}
           <div class="classroom-meta">
             <span>👥 ${c.studentIds?.length || 0} students</span>
             <span>📅 ${formatDateTime(c.createdAt)}</span>
@@ -65,15 +65,15 @@ async function loadMyClassrooms() {
       `;
     }).join('');
   } catch (e) {
-    container.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>${e.message}</p></div>`;
+    container.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>${e.message}</p></div>`;
   }
 }
 
 // ─── Classroom detail ─────────────────────────────────────
 async function loadClassroomDetail(cid) {
   window._currentClassroomId = cid;
-  document.getElementById('classroom-detail').style.display    = 'block';
-  document.getElementById('my-classrooms-list').style.display  = 'none';
+  document.getElementById('prof-list-view').style.display  = 'none';
+  document.getElementById('classroom-detail').style.display = 'block';
   document.getElementById('classroom-detail-content').innerHTML = '<div class="spinner">Loading…</div>';
   document.getElementById('assignments-list').innerHTML = '<div class="spinner">Loading…</div>';
   document.getElementById('submissions-list').innerHTML = '<div class="spinner">Loading…</div>';
@@ -89,20 +89,20 @@ async function loadClassroomDetail(cid) {
 
     // Header
     document.getElementById('classroom-detail-content').innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+      <div class="classroom-detail-header">
         <div>
-          <div style="font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:3px;color:var(--text)">${cls.name}</div>
-          ${cls.description ? `<div style="color:var(--muted2);font-size:12px">${cls.description}</div>` : ''}
-          <div class="classroom-meta" style="margin-top:8px">
+          <div class="detail-title">${cls.name}</div>
+          ${cls.description ? `<div style="color:var(--muted2);font-size:13px;margin-top:4px">${cls.description}</div>` : ''}
+          <div class="classroom-meta" style="margin-top:10px">
             <span>👥 ${cls.studentIds?.length || 0} enrolled</span>
-            <span>📅 ${formatDateTime(cls.createdAt)}</span>
+            <span>📅 Created ${formatDateTime(cls.createdAt)}</span>
           </div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <span style="background:var(--blue-subtle);color:var(--blue);border:1px solid var(--blue-dim);padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:0.06em">
+          <span class="count-chip" style="background:var(--blue-lt);color:var(--blue);border:1px solid var(--blue-bdr)">
             ${subs.length} SUBMISSIONS
           </span>
-          <span style="background:var(--green-subtle);color:var(--green);border:1px solid var(--green-dim);padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:0.06em">
+          <span class="count-chip" style="background:var(--teal-lt);color:var(--teal);border:1px solid var(--teal-bdr)">
             ${subs.filter(s => s.status === 'graded').length} GRADED
           </span>
         </div>
@@ -114,8 +114,6 @@ async function loadClassroomDetail(cid) {
     if (!asgn.title) {
       asgnEl.innerHTML = '<div class="empty" style="padding:24px"><p>No assignment set for this classroom.</p></div>';
     } else {
-      const state   = deadlineState(asgn.deadline);
-      const dlBadge = deadlineBadge(asgn.deadline);
       asgnEl.innerHTML = `
         <div class="assignment-row">
           <div style="flex:1">
@@ -123,7 +121,7 @@ async function loadClassroomDetail(cid) {
             ${asgn.description ? `<div class="assignment-desc">${asgn.description}</div>` : ''}
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            ${dlBadge || '<span style="color:var(--muted2);font-size:12px">No deadline</span>'}
+            ${deadlineBadge(asgn.deadline) || '<span style="color:var(--muted2);font-size:12px">No deadline</span>'}
           </div>
         </div>
       `;
@@ -145,11 +143,11 @@ async function loadClassroomDetail(cid) {
             ${subs.map(s => `
               <tr>
                 <td>
-                  <div style="font-weight:500;color:var(--text)">${s.studentName}</div>
-                  <div style="color:var(--muted2);font-size:11px">${s.studentId} · ${s.studentDept || ''}</div>
+                  <div style="font-weight:600;color:var(--text)">${s.studentName}</div>
+                  <div style="color:var(--muted2);font-size:11px;font-family:'Syne',sans-serif">${s.studentId} · ${s.studentDept || ''}</div>
                 </td>
                 <td>
-                  <div style="font-weight:500;color:var(--text)">${s.title}</div>
+                  <div style="font-weight:600;color:var(--text)">${s.title}</div>
                   ${s.description ? `<div style="color:var(--muted2);font-size:11px">${truncate(s.description, 38)}</div>` : ''}
                 </td>
                 <td><a href="${s.driveLink}" target="_blank" rel="noopener" class="drive-link">📁 Open</a></td>
@@ -157,11 +155,11 @@ async function loadClassroomDetail(cid) {
                 <td><span class="status ${s.status}">${s.status === 'graded' ? 'Graded' : 'Submitted'}</span></td>
                 <td>
                   ${s.grade
-                    ? `<div class="grade-badge">${s.grade}</div>${s.feedback ? `<div style="color:var(--muted2);font-size:11px;margin-top:3px">${truncate(s.feedback, 28)}</div>` : ''}`
+                    ? `<div class="grade-badge">${s.grade}</div>${s.feedback ? `<div style="color:var(--muted2);font-size:11px;margin-top:4px">${truncate(s.feedback, 28)}</div>` : ''}`
                     : '<span style="color:var(--muted2);font-size:12px">—</span>'}
                 </td>
                 <td>
-                  <button class="btn btn-blue btn-sm" onclick="openGradeModal('${s.id}')">
+                  <button class="primary-btn" style="font-size:11px;padding:7px 12px;margin-top:0" onclick="openGradeModal('${s.id}')">
                     ${s.status === 'graded' ? '✏ Re-grade' : '✓ Grade'}
                   </button>
                 </td>
@@ -179,8 +177,8 @@ async function loadClassroomDetail(cid) {
 
 function backToClassrooms() {
   window._currentClassroomId = null;
-  document.getElementById('classroom-detail').style.display    = 'none';
-  document.getElementById('my-classrooms-list').style.display  = 'block';
+  document.getElementById('classroom-detail').style.display  = 'none';
+  document.getElementById('prof-list-view').style.display    = 'block';
   loadMyClassrooms();
 }
 
@@ -205,12 +203,12 @@ function renderStudentPicker(students) {
   document.getElementById('student-picker').innerHTML = students.map(s => `
     <label class="student-pick-item" id="pick-${s.id}">
       <input type="checkbox" value="${s.id}" onchange="updateStudentPickStyle('${s.id}', this.checked)">
-      <div class="user-item-avatar" style="background:var(--green-dim);color:var(--green);width:30px;height:30px;font-size:12px;flex-shrink:0">
+      <div class="user-item-avatar" style="background:var(--teal);width:30px;height:30px;font-size:12px;flex-shrink:0;border-radius:6px">
         ${s.name.charAt(0)}
       </div>
       <div>
-        <div style="font-weight:500;font-size:13px;color:var(--text)">${s.name}</div>
-        <div style="color:var(--muted2);font-size:11px">${s.id} · ${s.dept || ''}</div>
+        <div style="font-weight:600;font-size:13px;color:var(--text)">${s.name}</div>
+        <div style="color:var(--muted2);font-size:11px;font-family:'Syne',sans-serif">${s.id} · ${s.dept || ''}</div>
       </div>
     </label>
   `).join('');
@@ -246,9 +244,9 @@ async function createClassroom() {
   const studentIds = [...document.querySelectorAll('#student-picker input:checked')].map(c => c.value);
   const btn        = document.getElementById('create-cls-btn');
 
-  if (!name)                { toast('Classroom name is required.', 'error'); return; }
-  if (studentIds.length < 1){ toast('Select at least one student.', 'error'); return; }
-  if (aTitle && !dlDate)    { toast('Please set a deadline date for the assignment.', 'error'); return; }
+  if (!name)                 { toast('Classroom name is required.', 'error'); return; }
+  if (studentIds.length < 1) { toast('Select at least one student.', 'error'); return; }
+  if (aTitle && !dlDate)     { toast('Please set a deadline date for the assignment.', 'error'); return; }
 
   let deadline = null;
   if (aTitle && dlDate) {
@@ -261,17 +259,17 @@ async function createClassroom() {
   try {
     await api.createClassroom(name, desc, studentIds, assignment);
     toast(`Classroom "${name}" created with ${studentIds.length} students!`, 'success');
-    // reset
-    document.getElementById('cls-name').value            = '';
-    document.getElementById('cls-desc').value            = '';
-    document.getElementById('cls-assignment-title').value= '';
-    document.getElementById('cls-assignment-desc').value = '';
-    document.getElementById('cls-deadline-date').value   = '';
-    document.getElementById('cls-deadline-time').value   = '23:59';
+    document.getElementById('cls-name').value             = '';
+    document.getElementById('cls-desc').value             = '';
+    document.getElementById('cls-assignment-title').value = '';
+    document.getElementById('cls-assignment-desc').value  = '';
+    document.getElementById('cls-deadline-date').value    = '';
+    document.getElementById('cls-deadline-time').value    = '23:59';
     document.querySelectorAll('#student-picker input:checked').forEach(c => { c.checked = false; });
     document.querySelectorAll('.student-pick-selected').forEach(el => el.classList.remove('student-pick-selected'));
     updateSelectedCount();
-    switchProfTab('classrooms', document.querySelector('#page-professor .tab'));
+    const firstNavLink = document.querySelector('#nav-professor .nav-link');
+    switchProfTab('classrooms', firstNavLink);
     loadMyClassrooms();
   } catch (e) {
     toast('Failed: ' + e.message, 'error');
